@@ -2,8 +2,6 @@
   position: relative;
   border-radius: 50%;
   background-color: gold;
-  grid-column: 1;
-  grid-row: 1;
 
   .pacman__eye {
     position: absolute;
@@ -18,7 +16,7 @@
   .pacman_mouth {
     position: absolute;
     background-color: black;
-    width: 100%;
+    width: 102%;
     height: 100%;
     clip-path: polygon(100% 74%, 44% 48%, 100% 21%);
   }
