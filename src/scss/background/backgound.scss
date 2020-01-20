@@ -1,0 +1,15 @@
+body {
+  background-color: black;
+  display: flex;
+  height: 100vh;
+}
+
+.board {
+  margin: auto;
+  width: 500px;
+  height: 500px;
+  background-color: white;
+  display: grid;
+  grid-template-columns: repeat(20, auto);
+  grid-template-rows: repeat(20, auto);
+}
