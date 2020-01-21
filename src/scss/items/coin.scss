@@ -1,7 +1,4 @@
 .coin {
-  width: 3px;
-  height: 3px;
-  margin: 40%;
-  border-radius: 50%;
+  clip-path: circle(7.7% at 50% 50%);
   background-color: yellow;
 }
