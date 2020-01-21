@@ -1,14 +1,17 @@
-let $pacman = document.querySelector('.pacman');
+const $board = document.querySelector('.board');
+const $pacman = document.querySelector('.pacman');
 
 let nextPosition;
-let collision = false;
+let collisionWithWalls = false;
 
-let pacmanPosition = { x: 1, y: 1 };
+let pacmanPosition = {};
 let pacmanNextPosition = {};
 let wallPosition = [];
 
+// playboard. 0===coins / 1===wall / 2===exit / 3===PACMAN
+
 let gameBoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
@@ -23,34 +26,13 @@ let gameBoard = [
 ];
 
 (function game() {
-  placePacman();
-  createWalls();
-  createCoins();
+  placeElements();
   setInterval(step, 100);
   function step() {
     movePacman();
+    placePacman();
   }
 })();
-
-function createWalls() {
-  for (let i = 0; i < gameBoard.length; i++) {
-    for (let j = 0; j < gameBoard[i].length; j++) {
-      if (gameBoard[i][j] === 1) {
-        createWall(i + 1, j + 1);
-      }
-    }
-  }
-}
-
-function createCoins() {
-  for (let i = 0; i < gameBoard.length; i++) {
-    for (let j = 0; j < gameBoard[i].length; j++) {
-      if (gameBoard[i][j] === 0) {
-        createCoin(i + 1, j + 1);
-      }
-    }
-  }
-}
 
 window.addEventListener('keydown', function(e) {
   switch (e.key) {
@@ -58,33 +40,91 @@ window.addEventListener('keydown', function(e) {
       nextPosition = 'up';
       $pacman.className = 'pacman going-up';
       setPacmanNextPosition(nextPosition);
-      collision = false;
+      collisionWithWalls = false;
       break;
     case 'ArrowDown':
       nextPosition = 'down';
       $pacman.className = 'pacman going-down';
       setPacmanNextPosition(nextPosition);
-      collision = false;
+      collisionWithWalls = false;
       break;
     case 'ArrowRight':
       nextPosition = 'right';
       $pacman.className = 'pacman';
       setPacmanNextPosition(nextPosition);
-      collision = false;
+      collisionWithWalls = false;
       break;
     case 'ArrowLeft':
       nextPosition = 'left';
       $pacman.className = 'pacman going-left';
       setPacmanNextPosition(nextPosition);
-      collision = false;
+      collisionWithWalls = false;
       break;
   }
 });
+
+//create items
+
+function createWall(row, column) {
+  const $walls = document.createElement('div');
+  $walls.classList.add('walls');
+  $board.appendChild($walls);
+
+  let pieceOfWallPosition = {};
+  pieceOfWallPosition.x = column;
+  pieceOfWallPosition.y = row;
+  wallPosition.push(pieceOfWallPosition);
+
+  $walls.style.gridRow = pieceOfWallPosition.y;
+  $walls.style.gridColumn = pieceOfWallPosition.x;
+}
+
+function createCoin(row, column) {
+  const $coin = document.createElement('div');
+  $coin.classList.add('coin');
+  $board.appendChild($coin);
+
+  $coin.style.gridRow = row;
+  $coin.style.gridColumn = column;
+}
+
+function createExit(row, column) {
+  const $exit = document.createElement('div');
+  $exit.classList.add('exit');
+  $board.appendChild($exit);
+
+  $exit.style.gridRow = row;
+  $exit.style.gridColumn = column;
+}
+
+// place differents elements in the playboard
 
 function placePacman() {
   $pacman.style.gridRow = pacmanPosition.y;
   $pacman.style.gridColumn = pacmanPosition.x;
 }
+
+function placeElements() {
+  for (let i = 0; i < gameBoard.length; i++) {
+    for (let j = 0; j < gameBoard[i].length; j++) {
+      let y = i + 1;
+      let x = j + 1;
+      if (gameBoard[i][j] === 0) {
+        createCoin(y, x);
+      } else if (gameBoard[i][j] === 1) {
+        createWall(y, x);
+      } else if (gameBoard[i][j] === 2) {
+        createExit(y, x);
+      } else if (gameBoard[i][j] === 3) {
+        pacmanPosition.x = x;
+        pacmanPosition.y = y;
+        placePacman();
+      }
+    }
+  }
+}
+
+// pacman moves
 
 function setPacmanNextPosition(direction) {
   switch (direction) {
@@ -107,29 +147,9 @@ function setPacmanNextPosition(direction) {
   }
 }
 
-function createWall(row, column) {
-  const $walls = document.createElement('div');
-  $walls.classList.add('walls');
-  document.querySelector('.board').appendChild($walls);
-
-  let pieceOfWallPosition = {};
-  pieceOfWallPosition.x = column;
-  pieceOfWallPosition.y = row;
-  wallPosition.push(pieceOfWallPosition);
-
-  $walls.style.gridRow = pieceOfWallPosition.y;
-  $walls.style.gridColumn = pieceOfWallPosition.x;
-}
-
-function createCoin(row, colum) {
-  const $coin = document.createElement('div');
-  $coin.classList.add('coin');
-  document.querySelector('.board').appendChild($coin);
-}
-
 function movePacman() {
   pacManHitWall();
-  if (!collision) {
+  if (!collisionWithWalls) {
     switch (nextPosition) {
       case 'up':
         if (pacmanPosition.y > 1) {
@@ -157,18 +177,14 @@ function movePacman() {
         break;
     }
   }
-  placePacman();
 }
+
+// pacman collisions
 
 function pacManHitWall() {
   wallPosition.forEach(function(wall) {
     if (pacmanNextPosition.x === wall.x && pacmanNextPosition.y === wall.y) {
-      collision = true;
-      console.log(collision);
-      console.log(wall.x);
-      console.log(wall.y);
+      collisionWithWalls = true;
     }
   });
 }
-
-// empecher les positions et next positions a 0 et 12 et 25//
