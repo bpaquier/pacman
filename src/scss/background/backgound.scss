@@ -1,10 +1,11 @@
 body {
-  background-color: white;
+  background-color: black;
   display: flex;
   height: 100vh;
 }
 
 .board {
+  position: relative;
   margin: auto;
   width: 600px;
   height: 300px;
@@ -12,4 +13,5 @@ body {
   display: grid;
   grid-template-columns: repeat(24, auto);
   grid-template-rows: repeat(12, auto);
+  border: 5px solid blue;
 }

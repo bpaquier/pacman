@@ -1,16 +1,28 @@
 const $board = document.querySelector('.board');
 const $pacman = document.querySelector('.pacman');
+const $score = document.querySelector('.score');
 
 let nextPosition;
+let ghostNextDirection;
 let collisionWithWalls = false;
+let ghostcollisionWithWalls = false;
+let ghostCanMove = true;
+let gameTemplate;
+let ghostTemplate;
+let score = 0;
 
 let pacmanPosition = {};
 let pacmanNextPosition = {};
-let wallPosition = [];
+let exitPosition = {};
+let ghostPosition = {};
+let ghostNextPosition = {};
 
-// playboard. 0===coins / 1===wall / 2===exit / 3===PACMAN
+let allWallsPosition = [];
+let allCoinsPositions = [];
 
-let gameBoard = [
+// playboard. 0===coins / 1===wall / 2===exit / 3===PACMAN / 4===Ghosts
+
+let firstLevel = [
   [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -20,19 +32,44 @@ let gameBoard = [
   [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
   [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1],
   [0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-  [0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+  [0, 1, 4, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
   [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2],
   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
-(function game() {
+let secondLevel = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+];
+
+let gameBoard = firstLevel;
+
+function game() {
   placeElements();
-  setInterval(step, 100);
+  setGhostDirection();
+  gameTemplate = setInterval(step, 100);
   function step() {
-    movePacman();
     placePacman();
+    movePacman();
   }
-})();
+
+  ghostTemplate = setInterval(function() {
+    setGhostNextPosition(ghostNextDirection);
+    moveGhost();
+  }, 50);
+}
+
+window.addEventListener('load', game);
 
 window.addEventListener('keydown', function(e) {
   switch (e.key) {
@@ -73,8 +110,8 @@ function createWall(row, column) {
   let pieceOfWallPosition = {};
   pieceOfWallPosition.x = column;
   pieceOfWallPosition.y = row;
-  wallPosition.push(pieceOfWallPosition);
 
+  allWallsPosition.push(pieceOfWallPosition);
   $walls.style.gridRow = pieceOfWallPosition.y;
   $walls.style.gridColumn = pieceOfWallPosition.x;
 }
@@ -84,8 +121,14 @@ function createCoin(row, column) {
   $coin.classList.add('coin');
   $board.appendChild($coin);
 
-  $coin.style.gridRow = row;
-  $coin.style.gridColumn = column;
+  let coinPosition = {};
+  coinPosition.x = column;
+  coinPosition.y = row;
+  coinPosition.element = $coin;
+
+  allCoinsPositions.push(coinPosition);
+  $coin.style.gridRow = coinPosition.y;
+  $coin.style.gridColumn = coinPosition.x;
 }
 
 function createExit(row, column) {
@@ -93,8 +136,23 @@ function createExit(row, column) {
   $exit.classList.add('exit');
   $board.appendChild($exit);
 
-  $exit.style.gridRow = row;
-  $exit.style.gridColumn = column;
+  exitPosition.x = column;
+  exitPosition.y = row;
+
+  $exit.style.gridRow = exitPosition.y;
+  $exit.style.gridColumn = exitPosition.x;
+}
+
+const $ghost = document.createElement('div');
+function createGhost(row, column) {
+  $ghost.classList.add('ghost');
+  $board.appendChild($ghost);
+
+  ghostPosition.x = column;
+  ghostPosition.y = row;
+
+  $ghost.style.gridRow = ghostPosition.y;
+  $ghost.style.gridColumn = ghostPosition.x;
 }
 
 // place differents elements in the playboard
@@ -119,6 +177,8 @@ function placeElements() {
         pacmanPosition.x = x;
         pacmanPosition.y = y;
         placePacman();
+      } else if (gameBoard[i][j] === 4) {
+        createGhost(y, x);
       }
     }
   }
@@ -148,7 +208,9 @@ function setPacmanNextPosition(direction) {
 }
 
 function movePacman() {
-  pacManHitWall();
+  pacmanExit();
+  elementsHitWalls();
+  pacmanGetCoins();
   if (!collisionWithWalls) {
     switch (nextPosition) {
       case 'up':
@@ -181,10 +243,151 @@ function movePacman() {
 
 // pacman collisions
 
-function pacManHitWall() {
-  wallPosition.forEach(function(wall) {
+function elementsHitWalls() {
+  allWallsPosition.forEach(function(wall) {
     if (pacmanNextPosition.x === wall.x && pacmanNextPosition.y === wall.y) {
       collisionWithWalls = true;
     }
   });
+}
+
+function pacmanExit() {
+  if (
+    pacmanPosition.x === exitPosition.x &&
+    pacmanPosition.y === exitPosition.y
+  ) {
+    reset();
+  }
+}
+
+function pacmanGetCoins() {
+  allCoinsPositions.forEach(function(coin) {
+    if (pacmanPosition.x === coin.x && pacmanPosition.y === coin.y) {
+      let index = allCoinsPositions.indexOf(coin);
+      allCoinsPositions.splice(index, 1);
+      coin.element.remove();
+      score++;
+      $score.innerHTML = 'Score : ' + score;
+    }
+  });
+}
+
+// Ghost Mouv
+
+function setGhostNextPosition(direction) {
+  switch (direction) {
+    case 'up':
+      ghostNextPosition.x = ghostPosition.x;
+      ghostNextPosition.y = ghostPosition.y - 1;
+      break;
+    case 'down':
+      ghostNextPosition.x = ghostPosition.x;
+      ghostNextPosition.y = ghostPosition.y + 1;
+      break;
+    case 'left':
+      ghostNextPosition.x = ghostPosition.x - 1;
+      ghostNextPosition.y = ghostPosition.y;
+      break;
+    case 'right':
+      ghostNextPosition.x = ghostPosition.x + 1;
+      ghostNextPosition.y = ghostPosition.y;
+      break;
+  }
+  ghostcollisionWithWalls = false;
+}
+
+function setGhostDirection() {
+  let randomnumber;
+  randomnumber = Math.floor(Math.random() * 4);
+  switch (randomnumber) {
+    case 0:
+      ghostNextDirection = 'up';
+      break;
+    case 1:
+      ghostNextDirection = 'down';
+      break;
+    case 2:
+      ghostNextDirection = 'right';
+      break;
+    case 3:
+      ghostNextDirection = 'left';
+      break;
+  }
+}
+
+function moveGhost() {
+  ghostIsOutOfBoard();
+  ghostHitWalls();
+  if (ghostcollisionWithWalls) {
+    setGhostDirection();
+  } else {
+    console.log('okk');
+    switch (ghostNextDirection) {
+      case 'up':
+        ghostPosition.y--;
+        setGhostNextPosition(ghostNextDirection);
+        break;
+      case 'down':
+        ghostPosition.y++;
+        setGhostNextPosition(ghostNextDirection);
+        break;
+      case 'left':
+        ghostPosition.x--;
+        setGhostNextPosition(ghostNextDirection);
+        break;
+      case 'right':
+        ghostPosition.x++;
+        setGhostNextPosition(ghostNextDirection);
+        break;
+    }
+    $ghost.style.gridRow = ghostPosition.y;
+    $ghost.style.gridColumn = ghostPosition.x;
+  }
+}
+
+function ghostHitWalls() {
+  allWallsPosition.forEach(function(wall) {
+    if (ghostNextPosition.x === wall.x && ghostNextPosition.y === wall.y) {
+      ghostcollisionWithWalls = true;
+    }
+  });
+}
+function ghostIsOutOfBoard() {
+  if (
+    ghostNextPosition.y < 1 ||
+    ghostNextPosition.y > 12 ||
+    ghostNextPosition.x < 1 ||
+    ghostNextPosition.x > 24
+  ) {
+    ghostcollisionWithWalls = true;
+  }
+}
+// reset function
+
+function reset() {
+  clearInterval(gameTemplate);
+  deleteAllCoins();
+  deleteAllWalls();
+  document.querySelector('.exit').remove();
+  nextPosition = '';
+  if (gameBoard === firstLevel) {
+    gameBoard = secondLevel;
+  } else if (gameBoard === secondLevel) {
+    gameBoard = firstLevel;
+  }
+  game();
+}
+
+function deleteAllCoins() {
+  document.querySelectorAll('.coin').forEach(function(coin) {
+    coin.remove();
+  });
+  allCoinsPositions = [];
+}
+
+function deleteAllWalls() {
+  document.querySelectorAll('.walls').forEach(function(wall) {
+    wall.remove();
+  });
+  allWallsPosition = [];
 }
