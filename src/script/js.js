@@ -3,10 +3,7 @@ const $pacman = document.querySelector('.pacman');
 const $score = document.querySelector('.score');
 
 let nextPosition;
-let ghostNextDirection;
 let collisionWithWalls = false;
-let ghostcollisionWithWalls = false;
-let ghostCanMove = true;
 let gameTemplate;
 let ghostTemplate;
 let score = 0;
@@ -14,22 +11,21 @@ let score = 0;
 let pacmanPosition = {};
 let pacmanNextPosition = {};
 let exitPosition = {};
-let ghostPosition = {};
-let ghostNextPosition = {};
 
 let allWallsPosition = [];
 let allCoinsPositions = [];
+let allGhostInformations = [];
 
 // playboard. 0===coins / 1===wall / 2===exit / 3===PACMAN / 4===Ghosts
 
 let firstLevel = [
   [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4],
   [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1],
   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+  [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 1],
   [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1],
   [0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
   [0, 1, 4, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
@@ -48,7 +44,7 @@ let secondLevel = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
 
@@ -56,17 +52,13 @@ let gameBoard = firstLevel;
 
 function game() {
   placeElements();
-  setGhostDirection();
   gameTemplate = setInterval(step, 100);
   function step() {
     placePacman();
     movePacman();
   }
-
-  ghostTemplate = setInterval(function() {
-    setGhostNextPosition(ghostNextDirection);
-    moveGhost();
-  }, 50);
+  ghostRandomMove();
+  console.log(allGhostInformations);
 }
 
 window.addEventListener('load', game);
@@ -143,16 +135,26 @@ function createExit(row, column) {
   $exit.style.gridColumn = exitPosition.x;
 }
 
-const $ghost = document.createElement('div');
 function createGhost(row, column) {
+  const $ghost = document.createElement('div');
   $ghost.classList.add('ghost');
   $board.appendChild($ghost);
 
-  ghostPosition.x = column;
-  ghostPosition.y = row;
+  let ghostInformation = {};
+  ghostInformation.element = $ghost;
+  ghostInformation.positionX = column;
+  ghostInformation.positionY = row;
+  ghostInformation.nextPositionX = 0;
+  ghostInformation.nextPositionY = 0;
+  allGhostInformations.push(ghostInformation);
 
-  $ghost.style.gridRow = ghostPosition.y;
-  $ghost.style.gridColumn = ghostPosition.x;
+  $ghost.style.gridRow = ghostInformation.positionY;
+  $ghost.style.gridColumn = ghostInformation.positionX;
+}
+
+for (let i = 0; i < allGhostInformations.length; i++) {
+  console.log('e');
+  //console.log(allGhostInformations[i]);
 }
 
 // place differents elements in the playboard
@@ -167,18 +169,24 @@ function placeElements() {
     for (let j = 0; j < gameBoard[i].length; j++) {
       let y = i + 1;
       let x = j + 1;
-      if (gameBoard[i][j] === 0) {
-        createCoin(y, x);
-      } else if (gameBoard[i][j] === 1) {
-        createWall(y, x);
-      } else if (gameBoard[i][j] === 2) {
-        createExit(y, x);
-      } else if (gameBoard[i][j] === 3) {
-        pacmanPosition.x = x;
-        pacmanPosition.y = y;
-        placePacman();
-      } else if (gameBoard[i][j] === 4) {
-        createGhost(y, x);
+      switch (gameBoard[i][j]) {
+        case 0:
+          createCoin(y, x);
+          break;
+        case 1:
+          createWall(y, x);
+          break;
+        case 2:
+          createExit(y, x);
+          break;
+        case 3:
+          pacmanPosition.x = x;
+          pacmanPosition.y = y;
+          placePacman();
+          break;
+        case 4:
+          createGhost(y, x);
+          break;
       }
     }
   }
@@ -274,100 +282,115 @@ function pacmanGetCoins() {
 
 // Ghost Mouv
 
-function setGhostNextPosition(direction) {
-  switch (direction) {
-    case 'up':
-      ghostNextPosition.x = ghostPosition.x;
-      ghostNextPosition.y = ghostPosition.y - 1;
-      break;
-    case 'down':
-      ghostNextPosition.x = ghostPosition.x;
-      ghostNextPosition.y = ghostPosition.y + 1;
-      break;
-    case 'left':
-      ghostNextPosition.x = ghostPosition.x - 1;
-      ghostNextPosition.y = ghostPosition.y;
-      break;
-    case 'right':
-      ghostNextPosition.x = ghostPosition.x + 1;
-      ghostNextPosition.y = ghostPosition.y;
-      break;
-  }
-  ghostcollisionWithWalls = false;
-}
+function ghostRandomMove() {
+  allGhostInformations.forEach(function(ghost) {
+    let ghostNextDirection;
+    let ghostcollisionWithWalls = false;
 
-function setGhostDirection() {
-  let randomnumber;
-  randomnumber = Math.floor(Math.random() * 4);
-  switch (randomnumber) {
-    case 0:
-      ghostNextDirection = 'up';
-      break;
-    case 1:
-      ghostNextDirection = 'down';
-      break;
-    case 2:
-      ghostNextDirection = 'right';
-      break;
-    case 3:
-      ghostNextDirection = 'left';
-      break;
-  }
-}
+    function setGhostDirection() {
+      let randomnumber;
+      randomnumber = Math.floor(Math.random() * 4);
+      switch (randomnumber) {
+        case 0:
+          ghostNextDirection = 'up';
+          break;
+        case 1:
+          ghostNextDirection = 'down';
+          break;
+        case 2:
+          ghostNextDirection = 'right';
+          break;
+        case 3:
+          ghostNextDirection = 'left';
+          break;
+      }
+    }
 
-function moveGhost() {
-  ghostIsOutOfBoard();
-  ghostHitWalls();
-  if (ghostcollisionWithWalls) {
+    function setGhostNextPosition() {
+      switch (ghostNextDirection) {
+        case 'up':
+          ghost.nextPositionX = ghost.positionX;
+          ghost.nextPositionY = ghost.positionY - 1;
+          break;
+        case 'down':
+          ghost.nextPositionX = ghost.positionX;
+          ghost.nextPositionY = ghost.positionY + 1;
+          break;
+        case 'left':
+          ghost.nextPositionX = ghost.positionX - 1;
+          ghost.nextPositionY = ghost.positionY;
+          break;
+        case 'right':
+          ghost.nextPositionX = ghost.positionX + 1;
+          ghost.nextPositionY = ghost.positionY;
+          break;
+      }
+      ghostcollisionWithWalls = false;
+    }
+
+    function ghostHitWalls() {
+      allWallsPosition.forEach(function(wall) {
+        if (ghost.nextPositionX === wall.x && ghost.nextPositionY === wall.y) {
+          ghostcollisionWithWalls = true;
+        }
+      });
+    }
+
+    function ghostIsOutOfBoard() {
+      if (
+        ghost.nextPositionY < 1 ||
+        ghost.nextPositionY > 12 ||
+        ghost.nextPositionX < 1 ||
+        ghost.nextPositionX > 24
+      ) {
+        ghostcollisionWithWalls = true;
+      }
+    }
+    function moveGhost() {
+      ghostIsOutOfBoard();
+      ghostHitWalls();
+      if (ghostcollisionWithWalls) {
+        setGhostDirection();
+      } else {
+        switch (ghostNextDirection) {
+          case 'up':
+            ghost.positionY--;
+            setGhostNextPosition(ghostNextDirection);
+            break;
+          case 'down':
+            ghost.positionY++;
+            setGhostNextPosition(ghostNextDirection);
+            break;
+          case 'left':
+            ghost.positionX--;
+            setGhostNextPosition(ghostNextDirection);
+            break;
+          case 'right':
+            ghost.positionX++;
+            setGhostNextPosition(ghostNextDirection);
+            break;
+        }
+        ghost.element.style.gridRow = ghost.positionY;
+        ghost.element.style.gridColumn = ghost.positionX;
+      }
+    }
+
     setGhostDirection();
-  } else {
-    console.log('okk');
-    switch (ghostNextDirection) {
-      case 'up':
-        ghostPosition.y--;
-        setGhostNextPosition(ghostNextDirection);
-        break;
-      case 'down':
-        ghostPosition.y++;
-        setGhostNextPosition(ghostNextDirection);
-        break;
-      case 'left':
-        ghostPosition.x--;
-        setGhostNextPosition(ghostNextDirection);
-        break;
-      case 'right':
-        ghostPosition.x++;
-        setGhostNextPosition(ghostNextDirection);
-        break;
-    }
-    $ghost.style.gridRow = ghostPosition.y;
-    $ghost.style.gridColumn = ghostPosition.x;
-  }
-}
 
-function ghostHitWalls() {
-  allWallsPosition.forEach(function(wall) {
-    if (ghostNextPosition.x === wall.x && ghostNextPosition.y === wall.y) {
-      ghostcollisionWithWalls = true;
-    }
+    ghostTemplate = setInterval(function() {
+      setGhostNextPosition(ghostNextDirection);
+      moveGhost();
+    }, 98);
   });
-}
-function ghostIsOutOfBoard() {
-  if (
-    ghostNextPosition.y < 1 ||
-    ghostNextPosition.y > 12 ||
-    ghostNextPosition.x < 1 ||
-    ghostNextPosition.x > 24
-  ) {
-    ghostcollisionWithWalls = true;
-  }
 }
 // reset function
 
 function reset() {
   clearInterval(gameTemplate);
+  clearInterval(ghostTemplate);
   deleteAllCoins();
   deleteAllWalls();
+  deleteAllGhosts();
   document.querySelector('.exit').remove();
   nextPosition = '';
   if (gameBoard === firstLevel) {
@@ -390,4 +413,11 @@ function deleteAllWalls() {
     wall.remove();
   });
   allWallsPosition = [];
+}
+
+function deleteAllGhosts() {
+  document.querySelectorAll('.ghost').forEach(function(ghost) {
+    ghost.remove();
+  });
+  allGhostInformations = [];
 }
