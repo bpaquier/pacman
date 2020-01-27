@@ -1,5 +1,6 @@
 const $board = document.querySelector('.board');
 const $pacman = document.querySelector('.pacman');
+const $pacmanMouth = document.querySelector('.pacman__mouth');
 const $score = document.querySelector('.score');
 
 let nextPosition;
@@ -58,7 +59,6 @@ function game() {
     movePacman();
   }
   ghostRandomMove();
-  console.log(allGhostInformations);
 }
 
 window.addEventListener('load', game);
@@ -152,11 +152,6 @@ function createGhost(row, column) {
   $ghost.style.gridColumn = ghostInformation.positionX;
 }
 
-for (let i = 0; i < allGhostInformations.length; i++) {
-  console.log('e');
-  //console.log(allGhostInformations[i]);
-}
-
 // place differents elements in the playboard
 
 function placePacman() {
@@ -216,6 +211,7 @@ function setPacmanNextPosition(direction) {
 }
 
 function movePacman() {
+  pacmanMeetAGhost();
   pacmanExit();
   elementsHitWalls();
   pacmanGetCoins();
@@ -265,6 +261,8 @@ function pacmanExit() {
     pacmanPosition.y === exitPosition.y
   ) {
     reset();
+    changeLevel();
+    game();
   }
 }
 
@@ -276,6 +274,18 @@ function pacmanGetCoins() {
       coin.element.remove();
       score++;
       $score.innerHTML = 'Score : ' + score;
+    }
+  });
+}
+
+function pacmanMeetAGhost() {
+  allGhostInformations.forEach(function(ghost) {
+    if (
+      pacmanPosition.x === ghost.positionX &&
+      pacmanPosition.y === ghost.positionY
+    ) {
+      deleteAllGhosts();
+      pacmanIsDead();
     }
   });
 }
@@ -346,6 +356,7 @@ function ghostRandomMove() {
         ghostcollisionWithWalls = true;
       }
     }
+
     function moveGhost() {
       ghostIsOutOfBoard();
       ghostHitWalls();
@@ -393,12 +404,27 @@ function reset() {
   deleteAllGhosts();
   document.querySelector('.exit').remove();
   nextPosition = '';
+}
+
+function pacmanIsDead() {
+  $pacmanMouth.classList.remove('is-eating');
+  $pacmanMouth.classList.add('is-dead');
+  setTimeout(function() {
+    $pacman.className = 'board__pacman pacman';
+    $pacmanMouth.classList.remove('is-dead');
+    $pacmanMouth.classList.add('is-eating');
+    gameBoard === secondLevel ? (gameBoard = firstLevel) : '';
+    reset();
+    game();
+  }, 1000);
+}
+
+function changeLevel() {
   if (gameBoard === firstLevel) {
     gameBoard = secondLevel;
   } else if (gameBoard === secondLevel) {
     gameBoard = firstLevel;
   }
-  game();
 }
 
 function deleteAllCoins() {

@@ -14,7 +14,7 @@
     right: 6px;
   }
 
-  .pacman_mouth {
+  .pacman__mouth {
     position: absolute;
     background-color: black;
     width: 102%;
@@ -22,8 +22,12 @@
     clip-path: polygon(100% 74%, 44% 48%, 100% 21%);
   }
 
-  .pacman_mouth.is-eating {
+  .pacman__mouth.is-eating {
     animation: eat 0.5s infinite alternate;
+  }
+
+  .pacman__mouth.is-dead {
+    animation: is-dead 1s linear;
   }
 
   &.going-left {
