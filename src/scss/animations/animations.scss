@@ -16,6 +16,12 @@
   }
 }
 
+@keyframes is-invinsible {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes is-dead {
   from {
     clip-path: polygon(

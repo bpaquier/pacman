@@ -2,12 +2,16 @@ const $board = document.querySelector('.board');
 const $pacman = document.querySelector('.pacman');
 const $pacmanMouth = document.querySelector('.pacman__mouth');
 const $score = document.querySelector('.score');
+const $lifes = document.querySelector('.lifes');
 
 let nextPosition;
 let collisionWithWalls = false;
+let pacmanInvinsible = false;
 let gameTemplate;
 let ghostTemplate;
 let score = 0;
+let lifes = 5;
+let lifeChanged = lifes;
 let ghostSpeed = 115;
 let pacmanSpeed = 100;
 
@@ -51,14 +55,16 @@ let secondLevel = [
   [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2]
 ];
 
-let gameBoard = secondLevel;
+let gameBoard = firstLevel;
 
 function game() {
+  showLifes();
   placeElements();
   gameTemplate = setInterval(step, pacmanSpeed);
   function step() {
     placePacman();
     movePacman();
+    pacmanMeetAGhost();
   }
   ghostRandomMove();
 }
@@ -69,25 +75,28 @@ window.addEventListener('keydown', function(e) {
   switch (e.key) {
     case 'ArrowUp':
       nextPosition = 'up';
-      $pacman.className = 'pacman going-up';
+      $pacman.classList.add('going-up');
+      $pacman.classList.remove('going-down', 'going-left');
       setPacmanNextPosition(nextPosition);
       collisionWithWalls = false;
       break;
     case 'ArrowDown':
       nextPosition = 'down';
-      $pacman.className = 'pacman going-down';
+      $pacman.classList.add('going-down');
+      $pacman.classList.remove('going-left', 'going-up');
       setPacmanNextPosition(nextPosition);
       collisionWithWalls = false;
       break;
     case 'ArrowRight':
       nextPosition = 'right';
-      $pacman.className = 'pacman';
+      $pacman.classList.remove('going-left', 'going-up', 'going-down');
       setPacmanNextPosition(nextPosition);
       collisionWithWalls = false;
       break;
     case 'ArrowLeft':
       nextPosition = 'left';
-      $pacman.className = 'pacman going-left';
+      $pacman.classList.add('going-left');
+      $pacman.classList.remove('going-down', 'going-up');
       setPacmanNextPosition(nextPosition);
       collisionWithWalls = false;
       break;
@@ -154,6 +163,10 @@ function createGhost(row, column) {
   $ghost.style.gridColumn = ghostInformation.positionX;
 }
 
+function showLifes() {
+  $lifes.innerHTML = `Lifes : ${lifeChanged}`;
+}
+
 // place differents elements in the playboard
 
 function placePacman() {
@@ -213,7 +226,6 @@ function setPacmanNextPosition(direction) {
 }
 
 function movePacman() {
-  setInterval(pacmanMeetAGhost, 10);
   pacmanExit();
   elementsHitWalls();
   pacmanGetCoins();
@@ -275,21 +287,28 @@ function pacmanGetCoins() {
       allCoinsPositions.splice(index, 1);
       coin.element.remove();
       score++;
-      $score.innerHTML = 'Score : ' + score;
+      $score.innerHTML = `Score : ${score}`;
     }
   });
 }
 
 function pacmanMeetAGhost() {
-  allGhostInformations.forEach(function(ghost) {
-    if (
-      pacmanPosition.x === ghost.positionX &&
-      pacmanPosition.y === ghost.positionY
-    ) {
-      deleteAllGhosts();
-      pacmanIsDead();
-    }
-  });
+  if (!pacmanInvinsible) {
+    allGhostInformations.forEach(function(ghost) {
+      if (
+        pacmanPosition.x === ghost.positionX &&
+        pacmanPosition.y === ghost.positionY
+      ) {
+        decreaseLifes();
+        pacmanInvinsible = true;
+        $pacman.classList.add('is-invinsible');
+        setTimeout(() => {
+          pacmanInvinsible = false;
+          $pacman.classList.remove('is-invinsible');
+        }, 2000);
+      }
+    });
+  }
 }
 
 // Ghost Mouv
@@ -392,6 +411,7 @@ function ghostRandomMove() {
 
     ghostTemplate = setInterval(function() {
       setGhostNextPosition(ghostNextDirection);
+      pacmanMeetAGhost();
       moveGhost();
     }, ghostSpeed);
   });
@@ -408,11 +428,22 @@ function reset() {
   nextPosition = '';
 }
 
+function decreaseLifes() {
+  lifeChanged--;
+  $lifes.innerHTML = `score : ${lifeChanged}`;
+  if (lifeChanged < 0) {
+    $lifes.innerHTML = '';
+    deleteAllGhosts();
+    pacmanIsDead();
+    lifeChanged = lifes;
+  }
+}
+
 function pacmanIsDead() {
   $pacmanMouth.classList.remove('is-eating');
   $pacmanMouth.classList.add('is-dead');
   clearInterval(gameTemplate);
-  setTimeout(function() {
+  setTimeout(() => {
     $pacman.className = 'board__pacman pacman';
     $pacmanMouth.classList.remove('is-dead');
     $pacmanMouth.classList.add('is-eating');

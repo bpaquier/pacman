@@ -4,6 +4,10 @@
   border-radius: 50%;
   background-color: gold;
 
+  &.is-invinsible {
+    animation: is-invinsible 0.15s alternate infinite;
+  }
+
   .pacman__eye {
     position: absolute;
     width: 3px;
