@@ -3,6 +3,7 @@ const $pacman = document.querySelector('.pacman');
 const $pacmanMouth = document.querySelector('.pacman__mouth');
 const $score = document.querySelector('.score');
 const $lifes = document.querySelector('.lifes');
+const $overlay = document.querySelector('.board__overlay');
 
 let nextPosition;
 let collisionWithWalls = false;
@@ -443,14 +444,16 @@ function pacmanIsDead() {
   $pacmanMouth.classList.remove('is-eating');
   $pacmanMouth.classList.add('is-dead');
   clearInterval(gameTemplate);
+  $overlay.classList.add('is-visible');
   setTimeout(() => {
+    $overlay.classList.remove('is-visible');
     $pacman.className = 'board__pacman pacman';
     $pacmanMouth.classList.remove('is-dead');
     $pacmanMouth.classList.add('is-eating');
     gameBoard === secondLevel ? (gameBoard = firstLevel) : '';
     reset();
     game();
-  }, 1000);
+  }, 2000);
 }
 
 function changeLevel() {
