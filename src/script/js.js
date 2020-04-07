@@ -38,7 +38,7 @@ let firstLevel = [
   [0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
   [0, 1, 4, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1],
   [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 4, 0, 1, , 0, 0, 1, 0, 2],
-  [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
 let secondLevel = [
@@ -53,7 +53,7 @@ let secondLevel = [
   [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0],
   [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
-  [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2]
+  [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2],
 ];
 
 let gameBoard = firstLevel;
@@ -72,7 +72,7 @@ function game() {
 
 window.addEventListener('load', game);
 
-window.addEventListener('keydown', function(e) {
+window.addEventListener('keydown', function (e) {
   switch (e.key) {
     case 'ArrowUp':
       nextPosition = 'up';
@@ -263,7 +263,7 @@ function movePacman() {
 // pacman collisions
 
 function elementsHitWalls() {
-  allWallsPosition.forEach(function(wall) {
+  allWallsPosition.forEach(function (wall) {
     if (pacmanNextPosition.x === wall.x && pacmanNextPosition.y === wall.y) {
       collisionWithWalls = true;
     }
@@ -282,7 +282,7 @@ function pacmanExit() {
 }
 
 function pacmanGetCoins() {
-  allCoinsPositions.forEach(function(coin) {
+  allCoinsPositions.forEach(function (coin) {
     if (pacmanPosition.x === coin.x && pacmanPosition.y === coin.y) {
       let index = allCoinsPositions.indexOf(coin);
       allCoinsPositions.splice(index, 1);
@@ -295,7 +295,7 @@ function pacmanGetCoins() {
 
 function pacmanMeetAGhost() {
   if (!pacmanInvinsible) {
-    allGhostInformations.forEach(function(ghost) {
+    allGhostInformations.forEach(function (ghost) {
       if (
         pacmanPosition.x === ghost.positionX &&
         pacmanPosition.y === ghost.positionY
@@ -315,7 +315,7 @@ function pacmanMeetAGhost() {
 // Ghost Mouv
 
 function ghostRandomMove() {
-  allGhostInformations.forEach(function(ghost) {
+  allGhostInformations.forEach(function (ghost) {
     let ghostNextDirection;
     let ghostcollisionWithWalls = false;
 
@@ -361,7 +361,7 @@ function ghostRandomMove() {
     }
 
     function ghostHitWalls() {
-      allWallsPosition.forEach(function(wall) {
+      allWallsPosition.forEach(function (wall) {
         if (ghost.nextPositionX === wall.x && ghost.nextPositionY === wall.y) {
           ghostcollisionWithWalls = true;
         }
@@ -410,7 +410,7 @@ function ghostRandomMove() {
 
     setGhostDirection();
 
-    ghostTemplate = setInterval(function() {
+    ghostTemplate = setInterval(function () {
       setGhostNextPosition(ghostNextDirection);
       pacmanMeetAGhost();
       moveGhost();
@@ -427,6 +427,8 @@ function reset() {
   deleteAllGhosts();
   document.querySelector('.exit').remove();
   nextPosition = '';
+  $score.innerHTML = '';
+  score = 0;
 }
 
 function decreaseLifes() {
@@ -444,7 +446,9 @@ function pacmanIsDead() {
   $pacmanMouth.classList.remove('is-eating');
   $pacmanMouth.classList.add('is-dead');
   clearInterval(gameTemplate);
-  $overlay.classList.add('is-visible');
+  setTimeout(() => {
+    $overlay.classList.add('is-visible');
+  }, 1200);
   setTimeout(() => {
     $overlay.classList.remove('is-visible');
     $pacman.className = 'board__pacman pacman';
@@ -453,7 +457,7 @@ function pacmanIsDead() {
     gameBoard === secondLevel ? (gameBoard = firstLevel) : '';
     reset();
     game();
-  }, 2000);
+  }, 4000);
 }
 
 function changeLevel() {
@@ -465,21 +469,21 @@ function changeLevel() {
 }
 
 function deleteAllCoins() {
-  document.querySelectorAll('.coin').forEach(function(coin) {
+  document.querySelectorAll('.coin').forEach(function (coin) {
     coin.remove();
   });
   allCoinsPositions = [];
 }
 
 function deleteAllWalls() {
-  document.querySelectorAll('.walls').forEach(function(wall) {
+  document.querySelectorAll('.walls').forEach(function (wall) {
     wall.remove();
   });
   allWallsPosition = [];
 }
 
 function deleteAllGhosts() {
-  document.querySelectorAll('.ghost').forEach(function(ghost) {
+  document.querySelectorAll('.ghost').forEach(function (ghost) {
     ghost.remove();
   });
   allGhostInformations = [];

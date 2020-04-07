@@ -31,7 +31,7 @@
   }
 
   .pacman__mouth.is-dead {
-    animation: is-dead 1s linear;
+    animation: is-dead 1s linear forwards;
   }
 
   &.going-left {
